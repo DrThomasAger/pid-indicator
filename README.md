@@ -43,7 +43,7 @@ A diamond floats over your head and over your opponent's.
 
 ### From the Plugin Hub (one click, inside RuneLite)
 
-The plugin has been submitted to the RuneLite Plugin Hub. Once it's accepted, open RuneLite, click the **Plugin Hub** icon in the sidebar, search **PID Indicator** and click **Install**. That's it.
+The plugin has been [submitted to the RuneLite Plugin Hub](https://github.com/runelite/plugin-hub/pull/18830). Once it's accepted, open RuneLite, click the **Plugin Hub** icon in the sidebar, search **PID Indicator** and click **Install**. That's it.
 
 ### Right now, from this page
 
