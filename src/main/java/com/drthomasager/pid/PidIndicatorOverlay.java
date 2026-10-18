@@ -187,6 +187,10 @@ class PidIndicatorOverlay extends Overlay
 		}
 		g.setColor(Color.BLACK);
 		g.drawPolygon(face);
+		if (first)
+		{
+			crown(g, x, y - r);
+		}
 
 		String n = first ? "1" : s == State.SECOND ? "2" : "?";
 		if (mayChange && s != State.UNKNOWN)
@@ -206,6 +210,38 @@ class PidIndicatorOverlay extends Overlay
 		g.drawString(n, tx, ty);
 
 		g.setComposite(comp);
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, aa == null ? RenderingHints.VALUE_ANTIALIAS_DEFAULT : aa);
+	}
+
+	/** A shaded gold crown resting on the diamond's top point, three points each with a ball. */
+	private static void crown(Graphics2D g, int x, int top)
+	{
+		Object aa = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		int base = top - 1;
+		int w = 8;
+		int h = 7;
+		Polygon crown = new Polygon(
+			new int[]{x - w, x - w, x - w / 2, x, x + w / 2, x + w, x + w},
+			new int[]{base, base - h, base - h / 2, base - h - 2, base - h / 2, base - h, base}, 7);
+		Polygon shadow = new Polygon(crown.xpoints.clone(), crown.ypoints.clone(), crown.npoints);
+		shadow.translate(1, 1);
+		g.setColor(new Color(0, 0, 0, 120));
+		g.fillPolygon(shadow);
+		g.setPaint(new java.awt.GradientPaint(x, base - h - 2, new Color(255, 240, 150), x, base, new Color(205, 135, 0)));
+		g.fillPolygon(crown);
+		g.setColor(new Color(120, 70, 0));
+		g.drawLine(x - w + 1, base - 1, x + w - 1, base - 1);
+		g.setColor(Color.BLACK);
+		g.drawPolygon(crown);
+		int[][] balls = {{x - w, base - h}, {x, base - h - 2}, {x + w, base - h}};
+		for (int[] b : balls)
+		{
+			g.setColor(new Color(255, 250, 210));
+			g.fillOval(b[0] - 2, b[1] - 2, 4, 4);
+			g.setColor(Color.BLACK);
+			g.drawOval(b[0] - 2, b[1] - 2, 4, 4);
+		}
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, aa == null ? RenderingHints.VALUE_ANTIALIAS_DEFAULT : aa);
 	}
 }
