@@ -15,7 +15,6 @@ import net.runelite.api.PlayerComposition;
 import net.runelite.api.WorldType;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.HitsplatApplied;
-import net.runelite.api.gameval.VarbitID;
 import net.runelite.api.kit.KitType;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -245,15 +244,5 @@ public class PidIndicatorPlugin extends Plugin
 	int[] redrawWindow()
 	{
 		return client.getWorldType().contains(WorldType.PVP) ? new int[]{40, 60} : new int[]{100, 150};
-	}
-
-	boolean inPvpPlace()
-	{
-		return client.getTopLevelWorldView().isInstance()
-			|| client.getWorldType().contains(WorldType.PVP)
-			|| client.getWorldType().contains(WorldType.LAST_MAN_STANDING)
-			|| client.getWorldType().contains(WorldType.HIGH_RISK)
-			|| client.getWorldType().contains(WorldType.DEADMAN)
-			|| client.getVarbitValue(VarbitID.INSIDE_WILDERNESS) > 0;
 	}
 }

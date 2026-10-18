@@ -42,7 +42,7 @@ Like a freeze timing indicator, or showing the game ticks, we show a small icon 
 
 ## What you'll see
 
-A small diamond sits beside your health bar and your opponent's, cut from the same stone as the game's own tab buttons. It never covers your prayers, skull or overheads.
+While you're fighting another player, a small diamond sits beside your health bar and theirs, cut from the same stone as the game's own tab buttons. It never covers your prayers, skull or overheads, and it's gone the moment the fight is.
 
 | | Over a player | What it means | What to do |
 |:---:|---|---|---|
@@ -81,7 +81,7 @@ It also teaches. Fight with it for a while and you'll start to feel PID before t
 
 ### Isn't this just another cringe overlay?
 
-It's two small diamonds. There are no boxes, no panels and no text. Outside a fight it shows only your own diamond, and you can switch even that off. It sits where your eyes already are during a fight, over the two heads that matter.
+It's two small diamonds, and they only exist while you're fighting another player. There are no boxes, no panels and no text. They sit where your eyes already are during a fight, beside the two health bars that matter.
 
 ### Why does PID matter so much?
 
