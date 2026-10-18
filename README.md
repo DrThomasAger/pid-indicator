@@ -10,20 +10,14 @@
 [![Build](https://img.shields.io/github/actions/workflow/status/DrThomasAger/pid-indicator/build.yml?style=for-the-badge)](https://github.com/DrThomasAger/pid-indicator/actions)
 [![Licence](https://img.shields.io/github/license/DrThomasAger/pid-indicator?style=for-the-badge&color=ffc800)](LICENSE)
 
-<table>
-<tr>
-<td align="center"><img src="docs/ingame-pid-close.png" width="400" alt="In a fight, the gold crown and 1 beside my health bar, the grey 2 beside theirs"><br><sub>In a fight. I go first, they go second.</sub></td>
-<td align="center"><img src="docs/ingame-not-known-close.png" width="400" alt="Nothing read yet, a grey ? beside each health bar"><br><sub>Nothing read yet. Attack, and it will know.</sub></td>
-</tr>
-</table>
+<img src="docs/ingame-not-known-close.png" width="400" alt="Nothing read yet, a grey ? beside each health bar">
+<img src="docs/ingame-pid-close.png" width="400" alt="In a fight, the gold crown and 1 beside my health bar, the grey 2 beside theirs">
 
 </div>
 
 ---
 
 I was watching Ian ([PureSpam](https://www.youtube.com/@PureSpam)) and he was constantly talking about PID. I had PK'ed in the wilderness for years but never heard of it, but turns out it's the secret to the highest skilled and most effective PvP gameplay. So I tried learning about it, but it never stuck. So I made a plugin to visualize it.
-
-— Dr. Thomas Ager
 
 <div align="center">
 
@@ -131,8 +125,6 @@ Watch [PureSpam](https://www.youtube.com/@PureSpam) fight. He talks about it con
 ## Where this is going
 
 Mentally tracking with memory isn't how I like to PK. The idea is that there are things that the game makes not fun, which is stuff to track with memory. This lets you focus on the flow state and fun of the game, to enjoy PKing again and get more skillful about learning the game engine.
-
-— Dr. Thomas Ager
 
 ---
 
