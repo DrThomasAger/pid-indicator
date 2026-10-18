@@ -19,12 +19,12 @@ public interface PidIndicatorConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "showSwapTicks",
-		name = "Show labels",
-		description = "Under each diamond, who goes first and when that may change",
+		keyName = "pulseWhenMayChange",
+		name = "Pulse when PID may change",
+		description = "The crown pulses once the game may hand PID to the other player",
 		position = 2
 	)
-	default boolean showSwapTicks()
+	default boolean pulseWhenMayChange()
 	{
 		return true;
 	}

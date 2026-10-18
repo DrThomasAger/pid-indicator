@@ -10,6 +10,16 @@
 [![Build](https://img.shields.io/github/actions/workflow/status/DrThomasAger/pid-indicator/build.yml?style=for-the-badge)](https://github.com/DrThomasAger/pid-indicator/actions)
 [![Licence](https://img.shields.io/github/license/DrThomasAger/pid-indicator?style=for-the-badge&color=ffc800)](LICENSE)
 
+</div>
+
+---
+
+I was watching Ian ([PureSpam](https://www.youtube.com/@PureSpam)) and he was constantly talking about PID. I had PK'ed in the wilderness for years but never heard of it, but turns out it's the secret to the highest skilled and most effective PvP gameplay. So I tried learning about it, but it never stuck. So I made a plugin to visualize it.
+
+— Dr. Thomas Ager
+
+<div align="center">
+
 ![The PID diamonds](docs/diamonds.png)
 
 **If PID has ever cost you a fight, give it a ⭐ so other PKers find it.**
@@ -18,26 +28,24 @@
 
 ---
 
-## Why I made this
+## Every PKer has been here
 
-I was watching Ian ([PureSpam](https://www.youtube.com/@PureSpam)) and he was constantly talking about PID. I had PK'ed in the wilderness for years but never heard of it, but turns out it's the secret to the highest skilled and most effective PvP gameplay. So I tried learning about it, but it never stuck. So I made a plugin to visualize it.
-
-Mentally tracking with memory isn't how I like to PK. The idea is that there are things that the game makes not fun, which is stuff to track with memory. This lets you focus on the flow state and fun of the game, to enjoy PKing again and get more skillful about learning the game engine.
-
-— Dr. Thomas Ager
-
----
+- **You trade hit for hit with someone your level, and they keep coming out ahead.** You never find out why.
+- **You stack your spec, they eat, and their hit lands first.** PID decided it, and you never saw it coming.
+- **You had the edge a minute ago, and now you don't.** The game handed PID over mid-fight and nothing told you.
+- **You burn hitpoints testing who goes first.** You trade hits on purpose and squint at hitsplats.
+- **You've read the guides and watched the videos.** It still won't stick when the fight is on.
 
 ## What you'll see
 
-A diamond floats over your head and over your opponent's.
+A diamond floats over your head and over your opponent's. No words, no numbers to read.
 
 | | Over a player | What it means | What to do |
 |:---:|---|---|---|
-| <img src="docs/state-first.png" width="180"> | **Gold diamond with a crown**, `goes first` | This player has PID. Their hits land first and their steps happen first. | If it's you, push. If it's them, play safe. |
-| <img src="docs/state-second.png" width="180"> | **Grey diamond**, `goes second` | This player doesn't have PID. | If it's you, avoid even trades and wait. |
-| <img src="docs/state-may-change.png" width="180"> | **Gold diamond with a crown**, `goes first, may change` | The game can hand PID to the other player at any moment. | Watch the crown. It might jump. |
-| <img src="docs/state-unknown.png" width="180"> | **Grey diamond over you**, `attack to find out` | Nothing has been read yet. | Land a hit and it will know. |
+| <img src="docs/state-first.png" width="140"> | **Gold diamond with a crown and a 1** | This player goes first. Their hits land first and their steps happen first. | If it's you, push. If it's them, play safe. |
+| <img src="docs/state-second.png" width="140"> | **Grey diamond with a 2** | This player goes second. | If it's you, avoid even trades and wait. |
+| <img src="docs/state-may-change.png" width="140"> | **The crown pulses** | The game can hand PID to the other player at any moment. | Watch the crown. It might jump. |
+| <img src="docs/state-unknown.png" width="140"> | **Grey diamond with a ?** | Nothing has been read yet. | Attack, and it will know. |
 
 ---
 
@@ -57,27 +65,27 @@ The plugin has been [submitted to the RuneLite Plugin Hub](https://github.com/ru
 
 ## FAQ
 
-### Do I even have PID right now?
+### How does it know?
 
-Look up. The crown says who goes first, and the plugin reads it from your fight as it happens. Every attack takes its own time to land, and when the defender has PID the hit lands one tick late. The plugin watches every attack and every hit, yours and theirs, and puts the answer over your heads. You never have to trade hits on purpose to find out.
-
-### Why does it matter?
-
-With PID your hits land first and your steps happen first. When you both go for the KO at the same moment, yours counts first. Players who know who has PID push when they have it and hold back when they don't.
+Every attack takes its own time to land, and when the defender has PID, the hit lands one tick late. The plugin watches every attack and every hit, yours and theirs, and puts the answer over your heads as the fight happens. You never have to trade hits on purpose to find out.
 
 ### Isn't reading PID part of the skill?
 
 Yes, and that's exactly why it's worth learning. The best PKers read PID by feel, built up over thousands of fights, holding it in memory while they fight. That memory work is the part the game makes no fun. With the crown over your heads you can let it go and put your attention on the fight itself, the flow of it, and on learning how the game engine really works. The skill was never in squinting at hitsplats. It's in knowing when to push and when to wait, and you still make every one of those calls yourself.
 
-It also teaches. Fight with it for a while and you'll start to feel PID before the crown moves. Then you can switch the labels off in the settings, or the whole thing, and keep the instinct.
+It also teaches. Fight with it for a while and you'll start to feel PID before the crown moves. Then you can switch it off and keep the instinct.
 
 ### Isn't this just another cringe overlay?
 
-It's two small diamonds and a few words. There are no boxes, no panels and no numbers flashing at you. Outside a fight it shows only your own diamond, and you can switch even that off. It sits where your eyes already are during a fight, over the two heads that matter.
+It's two small diamonds. There are no boxes, no panels and no text. Outside a fight it shows only your own diamond, and you can switch even that off. It sits where your eyes already are during a fight, over the two heads that matter.
+
+### Why does PID matter so much?
+
+With PID your hits land first and your steps happen first. When you both go for the KO at the same moment, yours counts first. Players who know who has PID push when they have it and hold back when they don't.
 
 ### What if PID changes mid-fight?
 
-The game hands PID out again at random every minute or so, faster on PvP worlds. When that moment arrives, the label becomes `goes first, may change`, so you see it coming before it happens.
+The game hands PID out again at random every minute or so, faster on PvP worlds. When that moment arrives, the crown starts to pulse, so you see it coming before it happens.
 
 ### Which weapons does it read?
 
@@ -87,7 +95,7 @@ It starts out already knowing the weapons seen across a large set of recorded fi
 
 ### Can I see what it has learned?
 
-Yes. Everything it knows is in a plain text file called `attacks.txt`, one weapon per line, showing its animation, its timing rule, how many hits it was learned from and the weapon's name. You'll find the file in the plugin's folder inside your `.runelite` folder, and you can read it, share it or edit it.
+Yes. Everything it knows is in a plain text file called `attacks.txt`, one weapon per line, showing its animation, its timing rule, how many hits it was learned from and the weapon's name. It lives in the plugin's folder inside your `.runelite` folder, and you can read it, share it or edit it.
 
 ```
 4230   | bow      | 1 + (3 + distance) / 6     |  7426/8223  | Dragon crossbow
@@ -101,11 +109,19 @@ Anywhere you fight another player. That covers Last Man Standing, the Wilderness
 
 ### Is it allowed?
 
-It only reads what your own client already shows you, meaning the attacks and hits of you and your opponent. It sends nothing anywhere, never clicks, never acts for you and changes nothing in the game. It draws two diamonds and a few words.
+It only reads what your own client already shows you, meaning the attacks and hits of you and your opponent. It sends nothing anywhere, never clicks, never acts for you and changes nothing in the game.
 
 ### I want to learn PID properly. Where do I start?
 
 Watch [PureSpam](https://www.youtube.com/@PureSpam) fight. He talks about it constantly, which is how this plugin started. [Dalbix's PID guide](https://www.youtube.com/watch?v=mCnN9cqro5g) walks through it with examples. Then turn this plugin on and watch the crown while you fight.
+
+---
+
+## Where this is going
+
+Mentally tracking with memory isn't how I like to PK. The idea is that there are things that the game makes not fun, which is stuff to track with memory. This lets you focus on the flow state and fun of the game, to enjoy PKing again and get more skillful about learning the game engine.
+
+— Dr. Thomas Ager
 
 ---
 
