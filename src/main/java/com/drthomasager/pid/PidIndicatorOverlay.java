@@ -19,7 +19,7 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 /**
  * A diamond over your head and over your opponent's. Gold with a crown and a
  * 1 on whoever goes first, grey with a 2 on whoever goes second, grey with a ?
- * while nobody knows yet. The crown pulses while the game may hand PID over.
+ * while nobody knows yet. Once the game may hand PID over they read 1? and 2?.
  */
 class PidIndicatorOverlay extends Overlay
 {
@@ -63,27 +63,26 @@ class PidIndicatorOverlay extends Overlay
 		}
 		PidTracker.Holder h = plugin.getHolder();
 		boolean unknown = !fighting || h == PidTracker.Holder.UNKNOWN;
-		boolean mayChange = !unknown && config.pulseWhenMayChange()
+		boolean mayChange = !unknown && config.markWhenMayChange()
 			&& plugin.getSinceChange() >= plugin.redrawWindow()[0];
-		float pulse = mayChange ? (float) (0.55 + 0.45 * Math.sin(System.currentTimeMillis() / 150.0)) : 1f;
-		diamond(g, me, unknown ? State.UNKNOWN : h == PidTracker.Holder.ME ? State.FIRST : State.SECOND, pulse);
+		diamond(g, me, unknown ? State.UNKNOWN : h == PidTracker.Holder.ME ? State.FIRST : State.SECOND, mayChange);
 		if (op != null)
 		{
-			diamond(g, op, unknown ? State.UNKNOWN : h == PidTracker.Holder.THEM ? State.FIRST : State.SECOND, pulse);
+			diamond(g, op, unknown ? State.UNKNOWN : h == PidTracker.Holder.THEM ? State.FIRST : State.SECOND, mayChange);
 		}
 		return null;
 	}
 
 	enum State { FIRST, SECOND, UNKNOWN }
 
-	private void diamond(Graphics2D g, Player p, State s, float pulse)
+	private void diamond(Graphics2D g, Player p, State s, boolean mayChange)
 	{
 		Point pt = p.getCanvasTextLocation(g, "", p.getLogicalHeight() + HEIGHT_ABOVE);
 		if (pt == null)
 		{
 			return;
 		}
-		drawDiamond(g, pt.getX(), pt.getY(), s, pulse);
+		drawDiamond(g, pt.getX(), pt.getY(), s, mayChange);
 		if (config.showAnimationIds() && p.getAnimation() >= 0)
 		{
 			String id = "animation " + p.getAnimation();
@@ -96,8 +95,8 @@ class PidIndicatorOverlay extends Overlay
 		}
 	}
 
-	/** The diamond itself, centred on x, y. pulse runs the crown's brightness from 0 to 1. */
-	static void drawDiamond(Graphics2D g, int x, int y, State s, float pulse)
+	/** The diamond itself, centred on x, y, with a ? after the number when PID may change. */
+	static void drawDiamond(Graphics2D g, int x, int y, State s, boolean mayChange)
 	{
 		Object aa = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
 		Object textAa = g.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
@@ -114,19 +113,22 @@ class PidIndicatorOverlay extends Overlay
 		g.drawPolygon(new Polygon(new int[]{x, x + R + 1, x, x - R - 1}, new int[]{y - R - 1, y, y + R + 1, y}, 4));
 		if (first)
 		{
-			int a = Math.max(0, Math.min(255, (int) (255 * pulse)));
 			Polygon crown = new Polygon(
 				new int[]{x - 8, x - 6, x - 3, x, x + 3, x + 6, x + 8},
 				new int[]{y - R - 2, y - R - 9, y - R - 5, y - R - 10, y - R - 5, y - R - 9, y - R - 2}, 7);
-			g.setColor(new Color(255, 200, 0, a));
+			g.setColor(GOLD);
 			g.fillPolygon(crown);
-			g.setColor(new Color(0, 0, 0, a));
+			g.setColor(Color.BLACK);
 			g.drawPolygon(crown);
 		}
 		// the game's own bold font, drawn sharp as the game draws it
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 		g.setFont(FontManager.getRunescapeBoldFont());
 		String n = first ? "1" : s == State.SECOND ? "2" : "?";
+		if (mayChange && s != State.UNKNOWN)
+		{
+			n = n + "?";
+		}
 		FontMetrics fm = g.getFontMetrics();
 		int tx = x - fm.stringWidth(n) / 2;
 		int ty = y + fm.getAscent() / 2 - 1;

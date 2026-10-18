@@ -44,7 +44,7 @@ A diamond floats over your head and over your opponent's. No words, no numbers t
 |:---:|---|---|---|
 | <img src="docs/state-first.png" width="140"> | **Gold diamond with a crown and a 1** | This player goes first. Their hits land first and their steps happen first. | If it's you, push. If it's them, play safe. |
 | <img src="docs/state-second.png" width="140"> | **Grey diamond with a 2** | This player goes second. | If it's you, avoid even trades and wait. |
-| <img src="docs/state-may-change.png" width="140"> | **The crown pulses** | The game can hand PID to the other player at any moment. | Watch the crown. It might jump. |
+| <img src="docs/state-may-change.png" width="140"> | **1? and 2?** | The game can hand PID to the other player at any moment. | Watch the crown. It might jump. |
 | <img src="docs/state-unknown.png" width="140"> | **Grey diamond with a ?** | Nothing has been read yet. | Attack, and it will know. |
 
 ---
@@ -85,7 +85,7 @@ With PID your hits land first and your steps happen first. When you both go for 
 
 ### What if PID changes mid-fight?
 
-The game hands PID out again at random every minute or so, faster on PvP worlds. When that moment arrives, the crown starts to pulse, so you see it coming before it happens.
+The game hands PID out again at random every minute or so, faster on PvP worlds. When that moment arrives, the diamonds read 1? and 2?, so you see it coming before it happens.
 
 ### Which weapons does it read?
 

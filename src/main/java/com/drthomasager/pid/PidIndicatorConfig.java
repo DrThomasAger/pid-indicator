@@ -19,12 +19,12 @@ public interface PidIndicatorConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "pulseWhenMayChange",
-		name = "Pulse when PID may change",
-		description = "The crown pulses once the game may hand PID to the other player",
+		keyName = "markWhenMayChange",
+		name = "Mark when PID may change",
+		description = "The diamonds read 1? and 2? once the game may hand PID to the other player",
 		position = 2
 	)
-	default boolean pulseWhenMayChange()
+	default boolean markWhenMayChange()
 	{
 		return true;
 	}
