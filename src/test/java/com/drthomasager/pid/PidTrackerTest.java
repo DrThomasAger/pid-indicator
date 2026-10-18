@@ -1,52 +1,53 @@
 package com.drthomasager.pid;
 
 import static org.junit.Assert.assertEquals;
+import com.drthomasager.pid.PidTracker.Holder;
+import com.drthomasager.pid.PidTracker.Side;
+import com.drthomasager.pid.WeaponCategory.Kind;
 import org.junit.Test;
 
 public class PidTrackerTest
 {
-	private static final int WHIP = 1658;
-
 	@Test
 	public void nothingSeenIsUnknown()
 	{
-		assertEquals(PidTracker.Holder.UNKNOWN, new PidTracker().holderAt(100));
+		assertEquals(Holder.UNKNOWN, new PidTracker().holderAt(100));
 	}
 
 	@Test
-	public void myHitLandingOnMySwingTickMeansIHavePid()
+	public void myMeleeHitLandingOnMySwingTickMeansIHavePid()
 	{
 		PidTracker t = new PidTracker();
-		t.observe(PidTracker.Side.ME, 10, WHIP, 1);
-		t.hit(PidTracker.Side.ME, 10);
-		assertEquals(PidTracker.Holder.ME, t.holderAt(11));
+		t.attack(Side.ME, 10, Kind.MELEE, 1);
+		t.hit(Side.ME, 10);
+		assertEquals(Holder.ME, t.holderAt(11));
 	}
 
 	@Test
-	public void myHitLandingATickLateMeansTheyHavePid()
+	public void myMeleeHitLandingATickLateMeansTheyHavePid()
 	{
 		PidTracker t = new PidTracker();
-		t.observe(PidTracker.Side.ME, 10, WHIP, 1);
-		t.hit(PidTracker.Side.ME, 11);
-		assertEquals(PidTracker.Holder.THEM, t.holderAt(12));
+		t.attack(Side.ME, 10, Kind.MELEE, 1);
+		t.hit(Side.ME, 11);
+		assertEquals(Holder.THEM, t.holderAt(12));
 	}
 
 	@Test
-	public void theirHitLandingOnTheirSwingTickMeansTheyHavePid()
+	public void theirMeleeHitLandingOnTheirSwingTickMeansTheyHavePid()
 	{
 		PidTracker t = new PidTracker();
-		t.observe(PidTracker.Side.THEM, 20, WHIP, 1);
-		t.hit(PidTracker.Side.THEM, 20);
-		assertEquals(PidTracker.Holder.THEM, t.holderAt(21));
+		t.attack(Side.THEM, 20, Kind.MELEE, 1);
+		t.hit(Side.THEM, 20);
+		assertEquals(Holder.THEM, t.holderAt(21));
 	}
 
 	@Test
 	public void evidenceOlderThanFortyTicksIsForgotten()
 	{
 		PidTracker t = new PidTracker();
-		t.observe(PidTracker.Side.ME, 10, WHIP, 1);
-		t.hit(PidTracker.Side.ME, 10);
-		assertEquals(PidTracker.Holder.UNKNOWN, t.holderAt(51));
+		t.attack(Side.ME, 10, Kind.MELEE, 1);
+		t.hit(Side.ME, 10);
+		assertEquals(Holder.UNKNOWN, t.holderAt(51));
 	}
 
 	@Test
@@ -56,32 +57,29 @@ public class PidTrackerTest
 		int[][] swings = {{10, 10}, {16, 17}, {22, 22}};
 		for (int[] s : swings)
 		{
-			t.observe(PidTracker.Side.ME, s[0] - 1, -1, 1);
-			t.observe(PidTracker.Side.ME, s[0], WHIP, 1);
-			t.hit(PidTracker.Side.ME, s[1]);
+			t.attack(Side.ME, s[0], Kind.MELEE, 1);
+			t.hit(Side.ME, s[1]);
 		}
-		assertEquals(PidTracker.Holder.ME, t.holderAt(23));
+		assertEquals(Holder.ME, t.holderAt(23));
 	}
 
 	@Test
-	public void crossbowOnItsFormulaTickMeansTheShooterHasPid()
+	public void aCrossbowBoltOnItsDelayMeansTheShooterHasPid()
 	{
 		PidTracker t = new PidTracker();
-		// at a distance of 4 the bolt takes 1 + (3 + 4) / 6 = 2 ticks
-		t.observe(PidTracker.Side.ME, 30, 4230, 4);
-		t.observe(PidTracker.Side.ME, 32, -1, 4);
-		t.hit(PidTracker.Side.ME, 32);
-		assertEquals(PidTracker.Holder.ME, t.holderAt(33));
+		// at a distance of 4 a bolt takes 1 + (3 + 4) / 6 = 2 ticks
+		t.attack(Side.ME, 30, Kind.BOW, 4);
+		t.hit(Side.ME, 32);
+		assertEquals(Holder.ME, t.holderAt(33));
 	}
 
 	@Test
-	public void crossbowOneTickLateMeansTheOtherHasPid()
+	public void aCrossbowBoltOneTickLateMeansTheOtherHasPid()
 	{
 		PidTracker t = new PidTracker();
-		t.observe(PidTracker.Side.ME, 30, 4230, 4);
-		t.observe(PidTracker.Side.ME, 33, -1, 4);
-		t.hit(PidTracker.Side.ME, 33);
-		assertEquals(PidTracker.Holder.THEM, t.holderAt(34));
+		t.attack(Side.ME, 30, Kind.BOW, 4);
+		t.hit(Side.ME, 33);
+		assertEquals(Holder.THEM, t.holderAt(34));
 	}
 
 	@Test
@@ -89,76 +87,65 @@ public class PidTrackerTest
 	{
 		PidTracker t = new PidTracker();
 		// at a distance of 5 a spell takes 1 + (1 + 5) / 3 = 3 ticks
-		t.observe(PidTracker.Side.THEM, 40, 7855, 5);
-		t.observe(PidTracker.Side.THEM, 43, -1, 5);
-		t.hit(PidTracker.Side.THEM, 43);
-		assertEquals(PidTracker.Holder.THEM, t.holderAt(44));
+		t.attack(Side.THEM, 40, Kind.MAGIC, 5);
+		t.hit(Side.THEM, 43);
+		assertEquals(Holder.THEM, t.holderAt(44));
 	}
 
 	@Test
-	public void aJavelinHitATickLateMeansTheTargetHasPid()
+	public void aThrownHitATickLateMeansTheTargetHasPid()
 	{
 		PidTracker t = new PidTracker();
-		// a javelin takes 1 tick
-		t.observe(PidTracker.Side.ME, 50, 929, 3);
-		t.observe(PidTracker.Side.ME, 52, -1, 3);
-		t.hit(PidTracker.Side.ME, 52);
-		assertEquals(PidTracker.Holder.THEM, t.holderAt(53));
+		// at a distance of 3 a knife takes 1 + 3 / 6 = 1 tick
+		t.attack(Side.ME, 50, Kind.THROWN, 3);
+		t.hit(Side.ME, 52);
+		assertEquals(Holder.THEM, t.holderAt(53));
 	}
 
 	@Test
-	public void anAnimationItDoesNotKnowSaysNothing()
+	public void aHitFarOutsideAnyDelaySaysNothing()
 	{
 		PidTracker t = new PidTracker();
-		// 829 is eating
-		t.observe(PidTracker.Side.ME, 60, 829, 1);
-		t.hit(PidTracker.Side.ME, 60);
-		assertEquals(PidTracker.Holder.UNKNOWN, t.holderAt(61));
+		t.attack(Side.ME, 60, Kind.MELEE, 1);
+		t.hit(Side.ME, 64);
+		assertEquals(Holder.UNKNOWN, t.holderAt(65));
 	}
 
 	@Test
-	public void aWeaponNobodyListedIsLearnedFromItsHits()
+	public void theHitDelaysMatchTheWiki()
 	{
-		AttackBook book = new AttackBook();
-		PidTracker t = new PidTracker(book);
-		int newWeapon = 55555;
-		int tick = 100;
-		for (int i = 0; i < AttackBook.MIN_SEEN; i++)
-		{
-			t.observe(PidTracker.Side.ME, tick, newWeapon, 1, "Lotus blade");
-			t.hit(PidTracker.Side.ME, tick + (i % 2));
-			t.observe(PidTracker.Side.ME, tick + 1, -1, 1);
-			tick += 4;
-			t.holderAt(tick);
-		}
-		assertEquals(AttackBook.Kind.MELEE, book.kindOf(newWeapon));
+		assertEquals(0, WeaponCategory.delay(Kind.MELEE, 1));
+		assertEquals(1, WeaponCategory.delay(Kind.BOW, 1));
+		assertEquals(2, WeaponCategory.delay(Kind.BOW, 3));
+		assertEquals(1, WeaponCategory.delay(Kind.THROWN, 5));
+		assertEquals(2, WeaponCategory.delay(Kind.THROWN, 6));
+		assertEquals(2, WeaponCategory.delay(Kind.BALLISTA, 4));
+		assertEquals(3, WeaponCategory.delay(Kind.BALLISTA, 5));
+		assertEquals(1, WeaponCategory.delay(Kind.MAGIC, 1));
+		assertEquals(2, WeaponCategory.delay(Kind.MAGIC, 2));
 	}
 
 	@Test
-	public void eatingNeverSettlesAsAnAttack()
+	public void categoriesMapToTheirKinds()
 	{
-		AttackBook book = new AttackBook();
-		PidTracker t = new PidTracker(book);
-		int[] gaps = {3, 0, 5, 2, 4, 1, 6, 3, 5, 2};
-		int tick = 200;
-		for (int g : gaps)
-		{
-			t.observe(PidTracker.Side.ME, tick, 829, 1);
-			t.hit(PidTracker.Side.ME, tick + g);
-			t.observe(PidTracker.Side.ME, tick + 1, -1, 1);
-			tick += 8;
-			t.holderAt(tick);
-		}
-		assertEquals(null, book.kindOf(829));
+		assertEquals(Kind.BOW, WeaponCategory.kindOf(37));
+		assertEquals(Kind.BOW, WeaponCategory.kindOf(64));
+		assertEquals(Kind.THROWN, WeaponCategory.kindOf(24));
+		assertEquals(Kind.THROWN, WeaponCategory.kindOf(572));
+		assertEquals(Kind.BALLISTA, WeaponCategory.kindOf(567));
+		assertEquals(Kind.MAGIC, WeaponCategory.kindOf(1));
+		assertEquals(Kind.MELEE, WeaponCategory.kindOf(150));
+		assertEquals(Kind.MELEE, WeaponCategory.kindOf(-1));
 	}
 
 	@Test
-	public void theBookReadsBackWhatItWrites() throws Exception
+	public void theCategoryIsReadFromAnItemConfig()
 	{
-		AttackBook book = AttackBook.bundled();
-		AttackBook again = new AttackBook();
-		again.read(new java.io.StringReader(book.write()));
-		assertEquals(AttackBook.Kind.MELEE, again.kindOf(1658));
-		assertEquals(AttackBook.Kind.BOW, again.kindOf(4230));
+		// name, then category 37, then the end
+		byte[] config = {2, 'L', 'o', 't', 'u', 's', 0, 94, 0, 37, 0};
+		assertEquals(37, WeaponCategory.categoryOf(config));
+		byte[] none = {2, 'L', 'o', 't', 'u', 's', 0, 0};
+		assertEquals(0, WeaponCategory.categoryOf(none));
+		assertEquals(-1, WeaponCategory.categoryOf(null));
 	}
 }

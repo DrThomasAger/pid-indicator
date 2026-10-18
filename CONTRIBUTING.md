@@ -16,29 +16,24 @@ You need Java 11 or newer. To log in with a Jagex account in the developer clien
 
 | File | What it does |
 |---|---|
-| `PidIndicatorPlugin.java` | Reads each tick's attack animations, weapons and distance, and every hitsplat, and hands them to the tracker. Saves the attack book. |
-| `PidTracker.java` | Pairs each attack with that fighter's next hit, and works out who went first. Plain Java, no RuneLite classes. |
-| `AttackBook.java` | Learns which animations are attacks and which timing rule each follows. Reads and writes `attacks.txt`. |
-| `PidIndicatorOverlay.java` | Draws the diamonds and labels. |
-| `src/main/resources/.../attacks.txt` | The attack book the plugin ships with. |
+| `PidIndicatorPlugin.java` | Each tick, reads both fighters' animations and the weapon in their hands, and every hitsplat, and hands them to the tracker. |
+| `WeaponCategory.java` | Reads a weapon's category from the game's own item data and gives the hit delay that follows from it. Plain Java. |
+| `PidTracker.java` | Pairs each attack with that fighter's next hit, and works out who went first. Plain Java. |
+| `PidIndicatorOverlay.java` | Draws the diamonds. |
 
 ## The one idea behind it
 
-Every attack has its own hit delay (OSRS Wiki, [Hit delay](https://oldschool.runescape.wiki/w/Hit_delay)). When the defender was processed first in the tick, the hit lands one tick late. So an attack and its hit tell you who went first. The attack book works out each weapon's delay from the same attacks and hits.
+Every attack has its own hit delay, set by the weapon in the attacker's hands (OSRS Wiki, [Hit delay](https://oldschool.runescape.wiki/w/Hit_delay)). When the defender was processed first in the tick, the hit lands one tick late. So an attack and its hit tell you who went first.
 
-## Adding or fixing a weapon
+The weapon's kind comes from the game itself. Every item in the game's data carries a category, the same number the combat interface uses to choose a weapon's attack styles. Crossbows are 37, bows 64 and 106, thrown weapons 24, chinchompas 572, ballistae 567, staves 1, and each kind of melee weapon has its own. `WeaponCategory` reads that number from the item config and maps it to a delay. A weapon released tomorrow carries its category from the day it comes out, so there is no list to keep.
 
-Usually there's nothing to do, because the plugin learns weapons by itself. To ship a weapon to everyone:
+## Adding a rule
 
-1. Fight with it, then open `attacks.txt` in the plugin's folder inside `.runelite`.
-2. Copy its line into `src/main/resources/com/drthomasager/pid/attacks.txt`.
-3. Run `./gradlew test` and open a pull request.
-
-To see a weapon's animation id while fighting, turn on **Show animation ids** in the plugin's settings.
+If a new kind of weapon arrives with a hit delay of its own, add its category to `WeaponCategory.kindOf` and its delay to `WeaponCategory.delay`, with a test in `PidTrackerTest`. The categories are in the game's item data, and RuneLite's `net.runelite.cache` library reads them from your own cache.
 
 ## Tests
 
-`src/test/java/com/drthomasager/pid/PidTrackerTest.java` checks the tracker on its own. A new rule or a fix comes with a test that fails without it.
+`src/test/java/com/drthomasager/pid/PidTrackerTest.java` checks the tracker, the delays and the config reader on their own. A new rule or a fix comes with a test that fails without it.
 
 ## Style
 

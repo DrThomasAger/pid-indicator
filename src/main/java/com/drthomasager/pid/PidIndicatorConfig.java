@@ -17,15 +17,4 @@ public interface PidIndicatorConfig extends Config
 	{
 		return true;
 	}
-
-	@ConfigItem(
-		keyName = "showAnimationIds",
-		name = "Show animation ids",
-		description = "For adding weapons: shows the animation id of each attack under the diamonds",
-		position = 2
-	)
-	default boolean showAnimationIds()
-	{
-		return false;
-	}
 }

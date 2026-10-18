@@ -110,16 +110,6 @@ class PidIndicatorOverlay extends Overlay
 		}
 		int r = s == State.FIRST ? R_FIRST : R_OTHER;
 		drawDiamond(g, texture(s), pt.getX() + BAR_RIGHT + r, pt.getY() + BAR_Y, r, s, mayChange);
-		if (config.showAnimationIds() && p.getAnimation() >= 0)
-		{
-			String id = "animation " + p.getAnimation();
-			g.setFont(FontManager.getRunescapeSmallFont());
-			int tx = pt.getX() + BAR_RIGHT;
-			g.setColor(Color.BLACK);
-			g.drawString(id, tx + 1, pt.getY() + BAR_Y + r + 13);
-			g.setColor(Color.CYAN);
-			g.drawString(id, tx, pt.getY() + BAR_Y + r + 12);
-		}
 	}
 
 	/**
