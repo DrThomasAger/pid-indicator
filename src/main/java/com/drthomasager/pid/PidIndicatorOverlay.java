@@ -70,6 +70,12 @@ class PidIndicatorOverlay extends Overlay
 		return null;
 	}
 
+	/**
+	 * The label under a diamond, in words. Before PID can be redrawn the
+	 * holder's reads "PID safe" and the other's "no swap yet". Once a redraw
+	 * can happen both read "can swap now". With nothing read yet, yours reads
+	 * "hit to learn".
+	 */
 	private String note(PidTracker.Holder h, boolean mine)
 	{
 		if (!config.showSwapTicks())
@@ -78,20 +84,15 @@ class PidIndicatorOverlay extends Overlay
 		}
 		if (h == PidTracker.Holder.UNKNOWN)
 		{
-			return mine ? "PID ? hit to learn" : null;
+			return mine ? "hit to learn" : null;
 		}
-		int[] w = plugin.redrawWindow();
-		int toLo = w[0] - plugin.getSinceChange();
-		int toHi = w[1] - plugin.getSinceChange();
-		if (toLo > 0)
+		boolean holder = (h == PidTracker.Holder.ME) == mine;
+		boolean locked = plugin.getSinceChange() < plugin.redrawWindow()[0];
+		if (locked)
 		{
-			return "swap " + toLo + "-" + toHi + "t";
+			return holder ? "PID safe" : "no swap yet";
 		}
-		if (toHi > 0)
-		{
-			return "swap now-" + toHi + "t";
-		}
-		return "swap any tick";
+		return "can swap now";
 	}
 
 	private void diamond(Graphics2D g, Player p, boolean hasPid, boolean unknown, String note)

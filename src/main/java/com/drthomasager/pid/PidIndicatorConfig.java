@@ -20,8 +20,8 @@ public interface PidIndicatorConfig extends Config
 
 	@ConfigItem(
 		keyName = "showSwapTicks",
-		name = "Show swap ticks",
-		description = "Under each diamond, the ticks until PID can be drawn again",
+		name = "Show swap labels",
+		description = "Under each diamond, whether PID is safe or can swap now",
 		position = 2
 	)
 	default boolean showSwapTicks()
