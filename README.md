@@ -2,7 +2,7 @@
 
 # PID Indicator
 
-**See who goes first in every PvP fight, live, over both your heads.**
+**Stop tracking PID in your head. See who goes first, live, over both your heads, and enjoy the fight.**
 
 [![Stars](https://img.shields.io/github/stars/DrThomasAger/pid-indicator?style=for-the-badge&color=ffc800&logo=github)](https://github.com/DrThomasAger/pid-indicator/stargazers)
 [![Forks](https://img.shields.io/github/forks/DrThomasAger/pid-indicator?style=for-the-badge&color=ffc800&logo=github)](https://github.com/DrThomasAger/pid-indicator/fork)
@@ -21,6 +21,8 @@
 ## Why I made this
 
 I was watching Ian ([PureSpam](https://www.youtube.com/@PureSpam)) and he was constantly talking about PID. I had PK'ed in the wilderness for years but never heard of it, but turns out it's the secret to the highest skilled and most effective PvP gameplay. So I tried learning about it, but it never stuck. So I made a plugin to visualize it.
+
+Mentally tracking with memory isn't how I like to PK. The idea is that there are things that the game makes not fun, which is stuff to track with memory. This lets you focus on the flow state and fun of the game, to enjoy PKing again and get more skillful about learning the game engine.
 
 — Dr. Thomas Ager
 
@@ -65,7 +67,7 @@ With PID your hits land first and your steps happen first. When you both go for 
 
 ### Isn't reading PID part of the skill?
 
-Yes, and that's exactly why it's worth learning. The best PKers read PID by feel, built up over thousands of fights. That feel is what this plugin hands you, so you can stop guessing and start learning what to do with it. The skill was never in squinting at hitsplats. It's in knowing when to push and when to wait, and you still make every one of those calls yourself.
+Yes, and that's exactly why it's worth learning. The best PKers read PID by feel, built up over thousands of fights, holding it in memory while they fight. That memory work is the part the game makes no fun. With the crown over your heads you can let it go and put your attention on the fight itself, the flow of it, and on learning how the game engine really works. The skill was never in squinting at hitsplats. It's in knowing when to push and when to wait, and you still make every one of those calls yourself.
 
 It also teaches. Fight with it for a while and you'll start to feel PID before the crown moves. Then you can switch the labels off in the settings, or the whole thing, and keep the instinct.
 
