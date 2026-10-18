@@ -29,10 +29,26 @@ public class PidTracker
 
 	public enum Holder { ME, THEM, UNKNOWN }
 
-	/** Melee attack animations whose hit lands 0 or 1 tick after they begin. */
+	/*
+	 * Every attack says who went first. The OSRS Wiki's hit delay page gives
+	 * each attack its own delay, and a hit lands one tick later when the
+	 * defender was processed first that tick. The animations below were sorted
+	 * into kinds from recorded Last Man Standing fights, each kept only where
+	 * its hits land on its kind's delay.
+	 */
+
+	/** Melee attacks: the hit's own delay is 0 ticks. */
 	static final Set<Integer> MELEE_ANIMS = new HashSet<>(Arrays.asList(
-		1658, 1062, 7514, 376, 377, 393, 7045, 7644, 11222, 440));
+		1658, 440, 1062, 7514, 393, 390, 376, 377, 9471, 7045, 428, 7516, 7644, 2067, 9171, 11140,
+		414, 423, 10989, 11222));
+	/** Bows and crossbows: 1 + (3 + distance) / 6. */
+	static final Set<Integer> BOW_ANIMS = new HashSet<>(Arrays.asList(4230, 426, 9166));
+	/** Thrown weapons, chinchompas and the blowpipe: 1 + distance / 6. */
+	static final Set<Integer> THROWN_ANIMS = new HashSet<>(Arrays.asList(7218, 929));
+	/** Spells: 1 + (1 + distance) / 3. */
+	static final Set<Integer> MAGIC_ANIMS = new HashSet<>(Arrays.asList(1979, 1978, 7855, 1161, 710));
 	static final int CROSSBOW_ANIM = 4230;
+
 	/** Ticks after the newest evidence that the holder is still trusted. */
 	static final int WINDOW = 40;
 	private static final int KEEP = 200;
@@ -102,14 +118,14 @@ public class PidTracker
 		}
 	}
 
-	/** The ticks an animation from the set newly begins. */
-	static List<Obs> starts(List<Obs> obs, Set<Integer> anims)
+	/** The ticks an attack animation newly begins. */
+	static List<Obs> starts(List<Obs> obs)
 	{
 		List<Obs> out = new ArrayList<>();
 		Obs prev = null;
 		for (Obs o : obs)
 		{
-			boolean isNew = anims.contains(o.anim)
+			boolean isNew = baseDelay(o.anim, 0) >= 0
 				&& (prev == null || prev.anim != o.anim || o.tick - prev.tick > 1);
 			if (isNew)
 			{
@@ -126,35 +142,58 @@ public class PidTracker
 		return 1 + (3 + dist) / 6;
 	}
 
+	/**
+	 * The attack's own hit delay at a distance, when the attacker goes first,
+	 * or -1 when the animation is not an attack it knows.
+	 */
+	static int baseDelay(int anim, int dist)
+	{
+		if (MELEE_ANIMS.contains(anim))
+		{
+			return 0;
+		}
+		if (BOW_ANIMS.contains(anim))
+		{
+			return crossbowDelay(dist);
+		}
+		if (THROWN_ANIMS.contains(anim))
+		{
+			return 1 + dist / 6;
+		}
+		if (MAGIC_ANIMS.contains(anim))
+		{
+			return 1 + (1 + dist) / 3;
+		}
+		return -1;
+	}
+
 	static Holder holderFor(Side side, boolean zero)
 	{
 		return zero == (side == Side.ME) ? Holder.ME : Holder.THEM;
 	}
 
+	/**
+	 * Each attack start paired with that side's first hit within 6 ticks. On
+	 * the attack's own delay the attacker went first, one tick after it the
+	 * defender did, and any other gap says nothing.
+	 */
 	static List<Evidence> evidence(Side side, List<Obs> obs, List<Integer> hits)
 	{
 		List<Evidence> out = new ArrayList<>();
-		for (Obs s : starts(obs, MELEE_ANIMS))
+		for (Obs s : starts(obs))
 		{
 			for (int h : hits)
 			{
-				if (h >= s.tick && h <= s.tick + 1)
+				if (h >= s.tick && h <= s.tick + 6)
 				{
-					out.add(new Evidence(s.tick, side, holderFor(side, h == s.tick)));
-					break;
-				}
-			}
-		}
-		for (Obs s : starts(obs, new HashSet<>(Arrays.asList(CROSSBOW_ANIM))))
-		{
-			for (int h : hits)
-			{
-				if (h >= s.tick && h <= s.tick + 4)
-				{
-					int d = distAt(obs, h);
+					int d = MELEE_ANIMS.contains(s.anim) ? 0 : distAt(obs, h);
+					if (d < 0)
+					{
+						d = s.dist;
+					}
 					if (d >= 0)
 					{
-						int r = (h - s.tick) - crossbowDelay(d);
+						int r = (h - s.tick) - baseDelay(s.anim, d);
 						if (r == 0 || r == 1)
 						{
 							out.add(new Evidence(s.tick, side, holderFor(side, r == 0)));

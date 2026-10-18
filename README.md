@@ -27,7 +27,7 @@ PID Indicator puts a diamond over your head and over your opponent's. **Gold wit
 
 Most players find out after the fight, from a clip, or never. Some burn hitpoints testing it, trading hits and squinting at hitsplats.
 
-**The plugin reads it from your fight as it happens.** The player with PID sees their melee hit land the moment they swing, while the other player's lands a moment later. The plugin watches every swing and every hit, yours and theirs, and puts the answer over your heads. Crossbow bolts count too. You never have to trade hits on purpose to find out.
+**The plugin reads it from your fight as it happens.** Every attack has its own travel time, and when the defender has PID, the hit lands one tick late. The plugin watches every attack and every hit, yours and theirs, and puts the answer over your heads. Melee, crossbows, bows, darts, knives, the blowpipe, barrage and other spells all count. You never have to trade hits on purpose to find out.
 
 ### "I went all in and they had PID."
 
@@ -45,7 +45,11 @@ The game redraws PID at random every minute or so, and faster on PvP worlds. An 
 
 Two equal players trade hits, and one keeps coming out ahead. More often than people think, the difference is PID, not skill.
 
-**Now you can see it and learn from it.** Notice which fights you win with the crown over you and which you lose without it. You'll start to feel when to commit and when to wait, in Last Man Standing, in the Wilderness, on PvP worlds and in NH fights.
+**Now you can see it and learn from it.** Notice which fights you win with the crown over you and which you lose without it. You'll start to feel when to commit and when to wait.
+
+### "Does it work where I fight?"
+
+**Anywhere you fight another player.** That covers Last Man Standing, the Wilderness, PvP worlds, the PvP Arena, NH and pure fights, tribrid and single-style. It reads both of you from the moment either of you attacks.
 
 ### "Every PID tool is a guess."
 
@@ -74,7 +78,7 @@ This is the first version, and it gets sharper with every fight people play with
 
 1. **Run it in your fights.** Build it (see below) or grab the jar from [Releases](https://github.com/DrThomasAger/pid-indicator/releases) and load it in RuneLite's developer mode.
 2. **Tell us when it's wrong.** If the crown sat over the wrong player, [open an issue](https://github.com/DrThomasAger/pid-indicator/issues). Say roughly what happened, which weapons were out, and where you were fighting. A short clip is gold.
-3. **Bring your weapons.** It reads the whip, dragon dagger, claws, the common melee swings and crossbows. If you fight with something else, like a godsword, a maul, darts or knives, tell us, or add it yourself in [`PidTracker.java`](src/main/java/com/drthomasager/pid/PidTracker.java).
+3. **Bring your weapons.** It knows the attacks seen in a large set of recorded fights, from the whip, claws, godswords and mauls to crossbows, bows, darts, knives, the blowpipe and barrage. If your weapon never moves the crown, tell us, or add its animation yourself in [`PidTracker.java`](src/main/java/com/drthomasager/pid/PidTracker.java).
 4. **Star the repository** so other PKers can find it.
 5. **Pull requests are welcome.** The tracker is plain Java with its own tests in `src/test`.
 

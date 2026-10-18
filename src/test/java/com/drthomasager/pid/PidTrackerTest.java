@@ -83,4 +83,36 @@ public class PidTrackerTest
 		t.hit(PidTracker.Side.ME, 33);
 		assertEquals(PidTracker.Holder.THEM, t.holderAt(34));
 	}
+
+	@Test
+	public void aBarrageOnItsDelayMeansTheCasterHasPid()
+	{
+		PidTracker t = new PidTracker();
+		// at a distance of 5 a spell takes 1 + (1 + 5) / 3 = 3 ticks
+		t.observe(PidTracker.Side.THEM, 40, 1979, 5);
+		t.observe(PidTracker.Side.THEM, 43, -1, 5);
+		t.hit(PidTracker.Side.THEM, 43);
+		assertEquals(PidTracker.Holder.THEM, t.holderAt(44));
+	}
+
+	@Test
+	public void aThrownHitATickLateMeansTheTargetHasPid()
+	{
+		PidTracker t = new PidTracker();
+		// at a distance of 3 a thrown weapon takes 1 + 3 / 6 = 1 tick
+		t.observe(PidTracker.Side.ME, 50, 929, 3);
+		t.observe(PidTracker.Side.ME, 52, -1, 3);
+		t.hit(PidTracker.Side.ME, 52);
+		assertEquals(PidTracker.Holder.THEM, t.holderAt(53));
+	}
+
+	@Test
+	public void anAnimationItDoesNotKnowSaysNothing()
+	{
+		PidTracker t = new PidTracker();
+		// 829 is eating
+		t.observe(PidTracker.Side.ME, 60, 829, 1);
+		t.hit(PidTracker.Side.ME, 60);
+		assertEquals(PidTracker.Holder.UNKNOWN, t.holderAt(61));
+	}
 }
