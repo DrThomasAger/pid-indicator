@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
+import java.awt.RenderingHints;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
@@ -16,21 +17,21 @@ import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 
 /**
- * A diamond over your head and over your opponent's. Gold with a crown on
- * whoever has PID, grey with a cross on whoever does not or while nobody
- * knows yet, and under each the ticks until PID can be drawn again.
+ * A diamond over your head and over your opponent's. Gold with a crown and a
+ * 1 on whoever goes first, grey with a 2 on whoever goes second, grey with a ?
+ * while nobody knows yet. The crown pulses while the game may hand PID over.
  */
 class PidIndicatorOverlay extends Overlay
 {
 	private static final Color GOLD = new Color(255, 200, 0);
-	private static final Color GOLD_EDGE = new Color(255, 225, 90);
-	private static final Color GOLD_BACK = new Color(20, 16, 10, 210);
-	private static final Color GREY = new Color(115, 115, 115, 145);
-	private static final Color GREY_DARK = new Color(55, 55, 55, 135);
-	private static final Color GREY_EDGE = new Color(90, 90, 90, 140);
-	private static final Color GREY_CROSS = new Color(80, 80, 80, 120);
-	private static final Color GREY_TEXT = new Color(200, 200, 200);
-	private static final Color UNKNOWN = new Color(150, 150, 150, 180);
+	private static final Color GOLD_EDGE = new Color(255, 230, 110);
+	private static final Color GOLD_DARK = new Color(110, 70, 0);
+	private static final Color GREY = new Color(120, 120, 120, 200);
+	private static final Color GREY_EDGE = new Color(60, 60, 60, 220);
+	private static final Color GREY_TEXT = new Color(225, 225, 225);
+	/** How far above the head the diamond sits, clear of the health bar. */
+	private static final int HEIGHT_ABOVE = 80;
+	private static final int R = 12;
 
 	private final Client client;
 	private final PidIndicatorPlugin plugin;
@@ -62,98 +63,78 @@ class PidIndicatorOverlay extends Overlay
 		}
 		PidTracker.Holder h = plugin.getHolder();
 		boolean unknown = !fighting || h == PidTracker.Holder.UNKNOWN;
-		diamond(g, me, fighting && h == PidTracker.Holder.ME, unknown, fighting ? note(h, true) : null);
+		boolean mayChange = !unknown && config.pulseWhenMayChange()
+			&& plugin.getSinceChange() >= plugin.redrawWindow()[0];
+		float pulse = mayChange ? (float) (0.55 + 0.45 * Math.sin(System.currentTimeMillis() / 150.0)) : 1f;
+		diamond(g, me, unknown ? State.UNKNOWN : h == PidTracker.Holder.ME ? State.FIRST : State.SECOND, pulse);
 		if (op != null)
 		{
-			diamond(g, op, h == PidTracker.Holder.THEM, unknown, note(h, false));
+			diamond(g, op, unknown ? State.UNKNOWN : h == PidTracker.Holder.THEM ? State.FIRST : State.SECOND, pulse);
 		}
 		return null;
 	}
 
-	/**
-	 * The label under a diamond, saying what happens in the fight. Over
-	 * whoever has PID it reads "goes first", over the other "goes second".
-	 * Once the game can hand PID over, the first becomes "goes first, may
-	 * change". With nothing read yet, yours reads "attack to find out".
-	 */
-	private String note(PidTracker.Holder h, boolean mine)
-	{
-		if (!config.showSwapTicks())
-		{
-			return null;
-		}
-		if (h == PidTracker.Holder.UNKNOWN)
-		{
-			return mine ? "attack to find out" : null;
-		}
-		boolean first = (h == PidTracker.Holder.ME) == mine;
-		boolean mayChange = plugin.getSinceChange() >= plugin.redrawWindow()[0];
-		if (first)
-		{
-			return mayChange ? "goes first, may change" : "goes first";
-		}
-		return "goes second";
-	}
+	enum State { FIRST, SECOND, UNKNOWN }
 
-	private void diamond(Graphics2D g, Player p, boolean hasPid, boolean unknown, String note)
+	private void diamond(Graphics2D g, Player p, State s, float pulse)
 	{
-		Point pt = p.getCanvasTextLocation(g, "", p.getLogicalHeight() + 40);
+		Point pt = p.getCanvasTextLocation(g, "", p.getLogicalHeight() + HEIGHT_ABOVE);
 		if (pt == null)
 		{
 			return;
 		}
-		drawDiamond(g, pt.getX(), pt.getY(), hasPid, unknown, note);
+		drawDiamond(g, pt.getX(), pt.getY(), s, pulse);
 		if (config.showAnimationIds() && p.getAnimation() >= 0)
 		{
 			String id = "animation " + p.getAnimation();
 			g.setFont(FontManager.getRunescapeSmallFont());
 			int tx = pt.getX() - g.getFontMetrics().stringWidth(id) / 2;
 			g.setColor(Color.BLACK);
-			g.drawString(id, tx + 1, pt.getY() + 35);
+			g.drawString(id, tx + 1, pt.getY() + R + 15);
 			g.setColor(Color.CYAN);
-			g.drawString(id, tx, pt.getY() + 34);
+			g.drawString(id, tx, pt.getY() + R + 14);
 		}
 	}
 
-	/** The diamond itself, centred on x, y. */
-	static void drawDiamond(Graphics2D g, int x, int y, boolean hasPid, boolean unknown, String note)
+	/** The diamond itself, centred on x, y. pulse runs the crown's brightness from 0 to 1. */
+	static void drawDiamond(Graphics2D g, int x, int y, State s, float pulse)
 	{
-		int r = 9;
-		Polygon outer = new Polygon(new int[]{x, x + r, x, x - r}, new int[]{y - r, y, y + r, y}, 4);
-		g.setColor(hasPid ? GOLD_BACK : GREY_DARK);
+		Object aa = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+		Object textAa = g.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		boolean first = s == State.FIRST;
+		Polygon outer = new Polygon(new int[]{x, x + R, x, x - R}, new int[]{y - R, y, y + R, y}, 4);
+		g.setColor(first ? GOLD : GREY);
 		g.fillPolygon(outer);
-		g.setColor(unknown ? UNKNOWN : hasPid ? GOLD : GREY);
-		g.fillPolygon(new Polygon(new int[]{x, x + 5, x, x - 5}, new int[]{y - 5, y, y + 5, y}, 4));
-		g.setStroke(new BasicStroke(hasPid ? 2.2f : 1.2f));
-		g.setColor(hasPid ? GOLD_EDGE : GREY_EDGE);
+		g.setStroke(new BasicStroke(2f));
+		g.setColor(first ? GOLD_EDGE : GREY_EDGE);
 		g.drawPolygon(outer);
-		if (hasPid)
+		g.setColor(Color.BLACK);
+		g.setStroke(new BasicStroke(1f));
+		g.drawPolygon(new Polygon(new int[]{x, x + R + 1, x, x - R - 1}, new int[]{y - R - 1, y, y + R + 1, y}, 4));
+		if (first)
 		{
+			int a = Math.max(0, Math.min(255, (int) (255 * pulse)));
 			Polygon crown = new Polygon(
-				new int[]{x - 7, x - 5, x - 2, x, x + 2, x + 5, x + 7},
-				new int[]{y - 8, y - 14, y - 10, y - 15, y - 10, y - 14, y - 8}, 7);
-			g.setColor(GOLD);
+				new int[]{x - 8, x - 6, x - 3, x, x + 3, x + 6, x + 8},
+				new int[]{y - R - 2, y - R - 9, y - R - 5, y - R - 10, y - R - 5, y - R - 9, y - R - 2}, 7);
+			g.setColor(new Color(255, 200, 0, a));
 			g.fillPolygon(crown);
-			g.setColor(Color.BLACK);
-			g.setStroke(new BasicStroke(1.0f));
+			g.setColor(new Color(0, 0, 0, a));
 			g.drawPolygon(crown);
 		}
-		else
-		{
-			g.setColor(GREY_CROSS);
-			g.drawLine(x - 6, y - 6, x + 6, y + 6);
-		}
-		if (note != null)
-		{
-			g.setFont(FontManager.getRunescapeSmallFont());
-			FontMetrics fm = g.getFontMetrics();
-			int tx = x - fm.stringWidth(note) / 2;
-			int ty = y + r + 12;
-			g.setColor(Color.BLACK);
-			g.drawString(note, tx + 1, ty + 1);
-			g.setColor(hasPid ? GOLD : GREY_TEXT);
-			g.drawString(note, tx, ty);
-		}
-		g.setStroke(new BasicStroke(1.0f));
+		// the game's own bold font, drawn sharp as the game draws it
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+		g.setFont(FontManager.getRunescapeBoldFont());
+		String n = first ? "1" : s == State.SECOND ? "2" : "?";
+		FontMetrics fm = g.getFontMetrics();
+		int tx = x - fm.stringWidth(n) / 2;
+		int ty = y + fm.getAscent() / 2 - 1;
+		g.setColor(first ? GOLD_DARK : Color.BLACK);
+		g.drawString(n, tx + 1, ty + 1);
+		g.setColor(first ? Color.WHITE : GREY_TEXT);
+		g.drawString(n, tx, ty);
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, aa == null ? RenderingHints.VALUE_ANTIALIAS_DEFAULT : aa);
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, textAa == null ? RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT : textAa);
 	}
 }
