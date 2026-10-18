@@ -1,0 +1,31 @@
+name: The crown was on the wrong player
+description: Tell us when the plugin got PID wrong
+labels: [wrong-pid]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Roughly what you saw, and what made you sure the other player had PID.
+    validations:
+      required: true
+  - type: input
+    id: weapons
+    attributes:
+      label: Weapons out
+      placeholder: Abyssal whip and Dragon claws against a Dragon crossbow
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where you were fighting
+      options:
+        - Last Man Standing
+        - Wilderness
+        - PvP world
+        - PvP Arena
+        - Somewhere else
+  - type: input
+    id: clip
+    attributes:
+      label: Clip, if you have one
+      placeholder: A link to a video or a gif

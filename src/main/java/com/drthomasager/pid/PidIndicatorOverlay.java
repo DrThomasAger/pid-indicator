@@ -71,10 +71,10 @@ class PidIndicatorOverlay extends Overlay
 	}
 
 	/**
-	 * The label under a diamond, in words. Before PID can be redrawn the
-	 * holder's reads "PID safe" and the other's "no swap yet". Once a redraw
-	 * can happen both read "can swap now". With nothing read yet, yours reads
-	 * "hit to learn".
+	 * The label under a diamond, saying what happens in the fight. Over
+	 * whoever has PID it reads "goes first", over the other "goes second".
+	 * Once the game can hand PID over, the first becomes "goes first, may
+	 * change". With nothing read yet, yours reads "attack to find out".
 	 */
 	private String note(PidTracker.Holder h, boolean mine)
 	{
@@ -84,15 +84,15 @@ class PidIndicatorOverlay extends Overlay
 		}
 		if (h == PidTracker.Holder.UNKNOWN)
 		{
-			return mine ? "hit to learn" : null;
+			return mine ? "attack to find out" : null;
 		}
-		boolean holder = (h == PidTracker.Holder.ME) == mine;
-		boolean locked = plugin.getSinceChange() < plugin.redrawWindow()[0];
-		if (locked)
+		boolean first = (h == PidTracker.Holder.ME) == mine;
+		boolean mayChange = plugin.getSinceChange() >= plugin.redrawWindow()[0];
+		if (first)
 		{
-			return holder ? "PID safe" : "no swap yet";
+			return mayChange ? "goes first, may change" : "goes first";
 		}
-		return "can swap now";
+		return "goes second";
 	}
 
 	private void diamond(Graphics2D g, Player p, boolean hasPid, boolean unknown, String note)
@@ -103,6 +103,16 @@ class PidIndicatorOverlay extends Overlay
 			return;
 		}
 		drawDiamond(g, pt.getX(), pt.getY(), hasPid, unknown, note);
+		if (config.showAnimationIds() && p.getAnimation() >= 0)
+		{
+			String id = "animation " + p.getAnimation();
+			g.setFont(FontManager.getRunescapeSmallFont());
+			int tx = pt.getX() - g.getFontMetrics().stringWidth(id) / 2;
+			g.setColor(Color.BLACK);
+			g.drawString(id, tx + 1, pt.getY() + 35);
+			g.setColor(Color.CYAN);
+			g.drawString(id, tx, pt.getY() + 34);
+		}
 	}
 
 	/** The diamond itself, centred on x, y. */

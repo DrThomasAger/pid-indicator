@@ -1,27 +1,21 @@
 package com.drthomasager.pid;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Who has PID in a fight, read from when hits land.
  *
- * <p>A melee hit lands 0 or 1 tick after its attack animation begins. The
- * fighter whose hit lands on the very tick their swing begins was processed
- * first in that tick, which is having PID. Across 147 recorded Last Man
- * Standing fights, when one side's delay was 0 the other side's was 1 (245
- * nearby pairs, 2 exceptions). A crossbow shot adds evidence too, its delay
- * set against the bolt's travel time for the distance.
+ * <p>Every attack has its own hit delay, and a hit lands one tick later when
+ * the defender was processed first in the tick (OSRS Wiki, Hit delay). So each
+ * attack, paired with that fighter's next hit, says who went first. Which
+ * animations are attacks, and which rule each follows, comes from the
+ * {@link AttackBook}, which learns them from the same pairs.
  *
- * <p>The holder is the side most of the last three pieces of evidence within
- * 40 ticks name, and unknown 40 ticks after the newest. Scored over the
- * recorded fights this names the next melee evidence's holder 88 percent of
- * the time and is known on 90 percent of fight ticks.
+ * <p>The holder is the side most of the last three readings within 40 ticks
+ * name, and unknown 40 ticks after the newest, the soonest PID can be redrawn.
  *
- * <p>Pure Java with no RuneLite class, so it can be tested on its own.
+ * <p>Plain Java with no RuneLite class, so it can be tested on its own.
  */
 public class PidTracker
 {
@@ -29,231 +23,151 @@ public class PidTracker
 
 	public enum Holder { ME, THEM, UNKNOWN }
 
-	/*
-	 * Every attack says who went first. The OSRS Wiki's hit delay page gives
-	 * each attack its own delay, and a hit lands one tick later when the
-	 * defender was processed first that tick. The animations below were sorted
-	 * into kinds from recorded Last Man Standing fights, each kept only where
-	 * its hits land on its kind's delay.
-	 */
-
-	/** Melee attacks: the hit's own delay is 0 ticks. */
-	static final Set<Integer> MELEE_ANIMS = new HashSet<>(Arrays.asList(
-		1658, 440, 1062, 7514, 393, 390, 376, 377, 9471, 7045, 428, 7516, 7644, 2067, 9171, 11140,
-		414, 423, 10989, 11222));
-	/** Bows and crossbows: 1 + (3 + distance) / 6. */
-	static final Set<Integer> BOW_ANIMS = new HashSet<>(Arrays.asList(4230, 426, 9166));
-	/** Thrown weapons, chinchompas and the blowpipe: 1 + distance / 6. */
-	static final Set<Integer> THROWN_ANIMS = new HashSet<>(Arrays.asList(7218, 929));
-	/** Spells: 1 + (1 + distance) / 3. */
-	static final Set<Integer> MAGIC_ANIMS = new HashSet<>(Arrays.asList(1979, 1978, 7855, 1161, 710));
-	static final int CROSSBOW_ANIM = 4230;
-
-	/** Ticks after the newest evidence that the holder is still trusted. */
+	/** Ticks after the newest reading that the holder is still trusted. */
 	static final int WINDOW = 40;
+	/** The longest hit delay looked for after an attack starts. */
+	static final int MAX_GAP = 6;
 	private static final int KEEP = 200;
 
-	static final class Obs
+	static final class Start
 	{
+		final Side side;
 		final int tick;
 		final int anim;
 		final int dist;
+		final String weapon;
+		boolean learned;
 
-		Obs(int tick, int anim, int dist)
+		Start(Side side, int tick, int anim, int dist, String weapon)
 		{
+			this.side = side;
 			this.tick = tick;
 			this.anim = anim;
 			this.dist = dist;
+			this.weapon = weapon;
 		}
 	}
 
-	static final class Evidence
+	private final AttackBook book;
+	private final List<Start> starts = new ArrayList<>();
+	private final List<int[]> hits = new ArrayList<>();
+	private final int[] lastAnim = {-1, -1};
+	private final int[] lastTick = {-9, -9};
+
+	public PidTracker()
 	{
-		final int tick;
-		final Side side;
-		final Holder holder;
-
-		Evidence(int tick, Side side, Holder holder)
-		{
-			this.tick = tick;
-			this.side = side;
-			this.holder = holder;
-		}
+		this(AttackBook.bundled());
 	}
 
-	private final List<Obs> mine = new ArrayList<>();
-	private final List<Obs> theirs = new ArrayList<>();
-	private final List<Integer> dealt = new ArrayList<>();
-	private final List<Integer> taken = new ArrayList<>();
+	public PidTracker(AttackBook book)
+	{
+		this.book = book;
+	}
+
+	public AttackBook book()
+	{
+		return book;
+	}
 
 	public void reset()
 	{
-		mine.clear();
-		theirs.clear();
-		dealt.clear();
-		taken.clear();
+		starts.clear();
+		hits.clear();
+		lastAnim[0] = lastAnim[1] = -1;
+		lastTick[0] = lastTick[1] = -9;
 	}
 
 	/** One reading of a side's animation on a tick, with the distance between the two. */
 	public void observe(Side side, int tick, int anim, int dist)
 	{
-		List<Obs> l = side == Side.ME ? mine : theirs;
-		l.add(new Obs(tick, anim, dist));
-		trim(l);
+		observe(side, tick, anim, dist, null);
 	}
 
-	/** A hitsplat on the opponent that is ours (Side.ME), or one on us (Side.THEM). */
+	/** The same, with the name of the weapon in that side's hands. */
+	public void observe(Side side, int tick, int anim, int dist, String weapon)
+	{
+		int i = side.ordinal();
+		boolean isNew = anim >= 0 && (anim != lastAnim[i] || tick - lastTick[i] > 1);
+		lastAnim[i] = anim;
+		lastTick[i] = tick;
+		if (isNew)
+		{
+			starts.add(new Start(side, tick, anim, dist, weapon));
+			while (starts.size() > KEEP)
+			{
+				starts.remove(0);
+			}
+		}
+	}
+
+	/** A hit that side landed: on the opponent for Side.ME, on us for Side.THEM. */
 	public void hit(Side attacker, int tick)
 	{
-		List<Integer> l = attacker == Side.ME ? dealt : taken;
-		l.add(tick);
-		trim(l);
-	}
-
-	private static <T> void trim(List<T> l)
-	{
-		while (l.size() > KEEP)
+		hits.add(new int[]{attacker.ordinal(), tick});
+		while (hits.size() > KEEP)
 		{
-			l.remove(0);
+			hits.remove(0);
 		}
 	}
 
-	/** The ticks an attack animation newly begins. */
-	static List<Obs> starts(List<Obs> obs)
+	/** Ticks from the start to that side's first hit within MAX_GAP, or -1. */
+	private int gap(Start s)
 	{
-		List<Obs> out = new ArrayList<>();
-		Obs prev = null;
-		for (Obs o : obs)
+		for (int[] h : hits)
 		{
-			boolean isNew = baseDelay(o.anim, 0) >= 0
-				&& (prev == null || prev.anim != o.anim || o.tick - prev.tick > 1);
-			if (isNew)
+			if (h[0] == s.side.ordinal() && h[1] >= s.tick && h[1] <= s.tick + MAX_GAP)
 			{
-				out.add(o);
-			}
-			prev = o;
-		}
-		return out;
-	}
-
-	/** The crossbow bolt's delay in ticks for a distance: 1 + (3 + distance) / 6, rounded down. */
-	static int crossbowDelay(int dist)
-	{
-		return 1 + (3 + dist) / 6;
-	}
-
-	/**
-	 * The attack's own hit delay at a distance, when the attacker goes first,
-	 * or -1 when the animation is not an attack it knows.
-	 */
-	static int baseDelay(int anim, int dist)
-	{
-		if (MELEE_ANIMS.contains(anim))
-		{
-			return 0;
-		}
-		if (BOW_ANIMS.contains(anim))
-		{
-			return crossbowDelay(dist);
-		}
-		if (THROWN_ANIMS.contains(anim))
-		{
-			return 1 + dist / 6;
-		}
-		if (MAGIC_ANIMS.contains(anim))
-		{
-			return 1 + (1 + dist) / 3;
-		}
-		return -1;
-	}
-
-	static Holder holderFor(Side side, boolean zero)
-	{
-		return zero == (side == Side.ME) ? Holder.ME : Holder.THEM;
-	}
-
-	/**
-	 * Each attack start paired with that side's first hit within 6 ticks. On
-	 * the attack's own delay the attacker went first, one tick after it the
-	 * defender did, and any other gap says nothing.
-	 */
-	static List<Evidence> evidence(Side side, List<Obs> obs, List<Integer> hits)
-	{
-		List<Evidence> out = new ArrayList<>();
-		for (Obs s : starts(obs))
-		{
-			for (int h : hits)
-			{
-				if (h >= s.tick && h <= s.tick + 6)
-				{
-					int d = MELEE_ANIMS.contains(s.anim) ? 0 : distAt(obs, h);
-					if (d < 0)
-					{
-						d = s.dist;
-					}
-					if (d >= 0)
-					{
-						int r = (h - s.tick) - baseDelay(s.anim, d);
-						if (r == 0 || r == 1)
-						{
-							out.add(new Evidence(s.tick, side, holderFor(side, r == 0)));
-						}
-					}
-					break;
-				}
-			}
-		}
-		return out;
-	}
-
-	/** The distance read on a tick, or -1 when that tick was not read. */
-	static int distAt(List<Obs> obs, int tick)
-	{
-		for (int i = obs.size() - 1; i >= 0; i--)
-		{
-			if (obs.get(i).tick == tick)
-			{
-				return obs.get(i).dist;
+				return h[1] - s.tick;
 			}
 		}
 		return -1;
 	}
 
-	/** The newest evidence's tick, or -1. */
-	private int newestTick = -1;
-
-	public int newestEvidenceTick()
-	{
-		return newestTick;
-	}
-
-	/** Who has PID at tick now. */
+	/** Who has PID at tick now. Also teaches the book from attacks that have finished. */
 	public Holder holderAt(int now)
 	{
-		List<Evidence> ev = new ArrayList<>();
-		ev.addAll(evidence(Side.ME, mine, dealt));
-		ev.addAll(evidence(Side.THEM, theirs, taken));
-		ev.removeIf(e -> e.tick > now);
-		ev.sort((a, b) -> Integer.compare(a.tick, b.tick));
-		newestTick = ev.isEmpty() ? -1 : ev.get(ev.size() - 1).tick;
-		List<Evidence> recent = new ArrayList<>();
-		for (Evidence e : ev)
+		List<Holder> recent = new ArrayList<>();
+		for (Start s : starts)
 		{
-			if (now - e.tick <= WINDOW)
+			if (s.tick > now)
 			{
-				recent.add(e);
+				continue;
+			}
+			int g = gap(s);
+			if (!s.learned && (g >= 0 || now - s.tick > MAX_GAP))
+			{
+				s.learned = true;
+				if (g >= 0)
+				{
+					book.learn(s.anim, s.weapon, s.dist, g);
+				}
+			}
+			if (g < 0 || now - s.tick > WINDOW || s.dist < 0)
+			{
+				continue;
+			}
+			AttackBook.Kind k = book.kindOf(s.anim);
+			if (k == null)
+			{
+				continue;
+			}
+			int r = g - k.delay(s.dist);
+			if (r == 0 || r == 1)
+			{
+				boolean attackerFirst = r == 0;
+				recent.add(attackerFirst == (s.side == Side.ME) ? Holder.ME : Holder.THEM);
 			}
 		}
 		if (recent.isEmpty())
 		{
 			return Holder.UNKNOWN;
 		}
-		List<Evidence> last3 = recent.subList(Math.max(0, recent.size() - 3), recent.size());
+		List<Holder> last3 = recent.subList(Math.max(0, recent.size() - 3), recent.size());
 		int me = 0;
 		int them = 0;
-		for (Evidence e : last3)
+		for (Holder h : last3)
 		{
-			if (e.holder == Holder.ME)
+			if (h == Holder.ME)
 			{
 				me++;
 			}
@@ -266,6 +180,6 @@ public class PidTracker
 		{
 			return me > them ? Holder.ME : Holder.THEM;
 		}
-		return last3.get(last3.size() - 1).holder;
+		return last3.get(last3.size() - 1);
 	}
 }
