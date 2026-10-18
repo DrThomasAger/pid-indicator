@@ -70,21 +70,18 @@ class PidIndicatorOverlay extends Overlay
 		{
 			return null;
 		}
+		// only while he is fighting another player, so what is shown was read
 		Player op = plugin.getOpponent();
-		boolean fighting = op != null;
-		if (!fighting && !(config.showInPvpPlaces() && plugin.inPvpPlace()))
+		if (op == null)
 		{
 			return null;
 		}
 		PidTracker.Holder h = plugin.getHolder();
-		boolean unknown = !fighting || h == PidTracker.Holder.UNKNOWN;
+		boolean unknown = h == PidTracker.Holder.UNKNOWN;
 		boolean mayChange = !unknown && config.markWhenMayChange()
 			&& plugin.getSinceChange() >= plugin.redrawWindow()[0];
 		diamond(g, me, unknown ? State.UNKNOWN : h == PidTracker.Holder.ME ? State.FIRST : State.SECOND, mayChange);
-		if (op != null)
-		{
-			diamond(g, op, unknown ? State.UNKNOWN : h == PidTracker.Holder.THEM ? State.FIRST : State.SECOND, mayChange);
-		}
+		diamond(g, op, unknown ? State.UNKNOWN : h == PidTracker.Holder.THEM ? State.FIRST : State.SECOND, mayChange);
 		return null;
 	}
 
