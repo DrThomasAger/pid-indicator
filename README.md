@@ -145,3 +145,5 @@ PID has decided fights in the dark for years. Let's turn the lights on together.
 Made by **Dr. Thomas Ager** while playing Last Man Standing · BSD 2-Clause, the same licence as RuneLite
 
 </div>
+
+<p align="right"><a href="https://github.com/DrThomasAger"><img src="docs/buddha_eyes.png" width="64" alt="Guru Rinpoche's blessing"></a></p>
