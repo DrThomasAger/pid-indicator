@@ -1,14 +1,21 @@
 <div align="center">
 
-# PID Indicator
+<img src="docs/logo-dark.png" width="520" alt="PID Indicator">
 
-**Stop tracking PID in your head. See who goes first, live, over both your heads, and enjoy the fight.**
+**Stop tracking PID in your head. See who goes first, live, beside your health bar, and enjoy the fight.**
 
 [![Stars](https://img.shields.io/github/stars/DrThomasAger/pid-indicator?style=for-the-badge&color=ffc800&logo=github)](https://github.com/DrThomasAger/pid-indicator/stargazers)
 [![Forks](https://img.shields.io/github/forks/DrThomasAger/pid-indicator?style=for-the-badge&color=ffc800&logo=github)](https://github.com/DrThomasAger/pid-indicator/fork)
 [![Release](https://img.shields.io/github/v/release/DrThomasAger/pid-indicator?style=for-the-badge&color=ffc800)](https://github.com/DrThomasAger/pid-indicator/releases/latest)
 [![Build](https://img.shields.io/github/actions/workflow/status/DrThomasAger/pid-indicator/build.yml?style=for-the-badge)](https://github.com/DrThomasAger/pid-indicator/actions)
 [![Licence](https://img.shields.io/github/license/DrThomasAger/pid-indicator?style=for-the-badge&color=ffc800)](LICENSE)
+
+<table>
+<tr>
+<td align="center"><img src="docs/ingame-pid-close.png" width="400" alt="In a fight, the gold crown and 1 beside my health bar, the grey 2 beside theirs"><br><sub>In a fight. I go first, they go second.</sub></td>
+<td align="center"><img src="docs/ingame-not-known-close.png" width="400" alt="Nothing read yet, a grey ? beside each health bar"><br><sub>Nothing read yet. Attack, and it will know.</sub></td>
+</tr>
+</table>
 
 </div>
 
