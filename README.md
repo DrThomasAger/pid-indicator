@@ -28,6 +28,10 @@ I was watching Ian ([PureSpam](https://www.youtube.com/@PureSpam)) and he was co
 
 ---
 
+## What is this?
+
+Like a freeze timing indicator, or showing the game ticks, we show a small icon next to your character that shows if you or your opponent have PID, which means you will hit first when you attack at the same time.
+
 ## Every PKer has been here
 
 - **You trade hit for hit with someone your level, and they keep coming out ahead.** You never find out why.
