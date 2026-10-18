@@ -29,7 +29,7 @@ import net.runelite.client.util.Filepath;
 	name = "PID Indicator",
 	description = "Shows who goes first in your fight (PID), read from when hits land",
 	tags = {"pid", "pvp", "pk", "lms", "combat", "tick"},
-	internalName = "pidindicator"
+	internalName = "pid-indicator"
 )
 public class PidIndicatorPlugin extends Plugin
 {
