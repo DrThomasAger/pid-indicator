@@ -20,12 +20,23 @@ public interface PidIndicatorConfig extends Config
 
 	@ConfigItem(
 		keyName = "showSwapTicks",
-		name = "Show swap labels",
-		description = "Under each diamond, whether PID is safe or can swap now",
+		name = "Show labels",
+		description = "Under each diamond, who goes first and when that may change",
 		position = 2
 	)
 	default boolean showSwapTicks()
 	{
 		return true;
+	}
+
+	@ConfigItem(
+		keyName = "showAnimationIds",
+		name = "Show animation ids",
+		description = "For adding weapons: shows the animation id of each attack under the diamonds",
+		position = 3
+	)
+	default boolean showAnimationIds()
+	{
+		return false;
 	}
 }

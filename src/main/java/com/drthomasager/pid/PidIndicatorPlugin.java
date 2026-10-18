@@ -1,30 +1,43 @@
 package com.drthomasager.pid;
 
 import com.google.inject.Provides;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.concurrent.ScheduledExecutorService;
 import javax.inject.Inject;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
 import net.runelite.api.Client;
+import net.runelite.api.ItemComposition;
 import net.runelite.api.Player;
+import net.runelite.api.PlayerComposition;
 import net.runelite.api.WorldType;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.gameval.VarbitID;
+import net.runelite.api.kit.KitType;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.util.Filepath;
 
+@Slf4j
 @PluginDescriptor(
 	name = "PID Indicator",
-	description = "Shows who has PID in your fight, read from when hits land, with the ticks until it can swap",
-	tags = {"pid", "pvp", "pk", "lms", "combat", "tick"}
+	description = "Shows who goes first in your fight (PID), read from when hits land",
+	tags = {"pid", "pvp", "pk", "lms", "combat", "tick"},
+	internalName = "pidindicator"
 )
 public class PidIndicatorPlugin extends Plugin
 {
 	/** An opponent fought within this long stays marked while on screen. */
 	private static final long LINGER_MS = 30_000;
+	/** How often a changed attack book is written to disk, in ticks. */
+	private static final int SAVE_EVERY = 100;
+	private static final String BOOK_FILE = "attacks.txt";
 
 	@Inject
 	private Client client;
@@ -35,7 +48,10 @@ public class PidIndicatorPlugin extends Plugin
 	@Inject
 	private PidIndicatorOverlay overlay;
 
-	private final PidTracker tracker = new PidTracker();
+	@Inject
+	private ScheduledExecutorService executor;
+
+	private PidTracker tracker;
 
 	@Getter
 	private PidTracker.Holder holder = PidTracker.Holder.UNKNOWN;
@@ -52,6 +68,23 @@ public class PidIndicatorPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
+		AttackBook book = AttackBook.bundled();
+		try
+		{
+			Filepath f = bookFile();
+			if (f.exists())
+			{
+				try (Reader r = f.openReader())
+				{
+					book.read(r);
+				}
+			}
+		}
+		catch (IOException e)
+		{
+			log.debug("attack book not read", e);
+		}
+		tracker = new PidTracker(book);
 		overlayManager.add(overlay);
 	}
 
@@ -59,7 +92,7 @@ public class PidIndicatorPlugin extends Plugin
 	protected void shutDown()
 	{
 		overlayManager.remove(overlay);
-		tracker.reset();
+		saveBook();
 		holder = PidTracker.Holder.UNKNOWN;
 		opponent = null;
 		opponentName = null;
@@ -71,6 +104,48 @@ public class PidIndicatorPlugin extends Plugin
 	PidIndicatorConfig provideConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(PidIndicatorConfig.class);
+	}
+
+	private Filepath bookFile() throws IOException
+	{
+		return getPluginDirectory().join(BOOK_FILE);
+	}
+
+	/** Writes the attack book off the client thread, when something was learned. */
+	private void saveBook()
+	{
+		if (tracker == null || !tracker.book().changed())
+		{
+			return;
+		}
+		String text = tracker.book().write();
+		executor.execute(() ->
+		{
+			try
+			{
+				bookFile().write(text);
+			}
+			catch (IOException e)
+			{
+				log.debug("attack book not written", e);
+			}
+		});
+	}
+
+	private String weaponOf(Player p)
+	{
+		PlayerComposition comp = p.getPlayerComposition();
+		if (comp == null)
+		{
+			return null;
+		}
+		int id = comp.getEquipmentId(KitType.WEAPON);
+		if (id <= 0)
+		{
+			return "Unarmed";
+		}
+		ItemComposition item = client.getItemDefinition(id);
+		return item == null ? null : item.getName();
 	}
 
 	private Player findOpponent(Player me)
@@ -94,7 +169,7 @@ public class PidIndicatorPlugin extends Plugin
 	public void onGameTick(GameTick e)
 	{
 		Player me = client.getLocalPlayer();
-		if (me == null)
+		if (me == null || tracker == null)
 		{
 			return;
 		}
@@ -112,8 +187,8 @@ public class PidIndicatorPlugin extends Plugin
 			}
 			opponentSeenAt = now;
 			int dist = me.getWorldLocation().distanceTo(live.getWorldLocation());
-			tracker.observe(PidTracker.Side.ME, tick, me.getAnimation(), dist);
-			tracker.observe(PidTracker.Side.THEM, tick, live.getAnimation(), dist);
+			tracker.observe(PidTracker.Side.ME, tick, me.getAnimation(), dist, weaponOf(me));
+			tracker.observe(PidTracker.Side.THEM, tick, live.getAnimation(), dist, weaponOf(live));
 			opponent = live;
 		}
 		else if (opponentName != null && now - opponentSeenAt < LINGER_MS)
@@ -140,13 +215,17 @@ public class PidIndicatorPlugin extends Plugin
 			changeTick = tick;
 		}
 		sinceChange = changeTick < 0 ? 0 : Math.max(0, tick - changeTick);
+		if (tick % SAVE_EVERY == 0)
+		{
+			saveBook();
+		}
 	}
 
 	@Subscribe
 	public void onHitsplatApplied(HitsplatApplied e)
 	{
 		Player me = client.getLocalPlayer();
-		if (me == null || opponentName == null)
+		if (me == null || opponentName == null || tracker == null)
 		{
 			return;
 		}
